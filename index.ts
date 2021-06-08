@@ -16,13 +16,13 @@ const swapTargetSource = (varSelect: string) => {
   let trimmedInput = varSelect.substring(startingOffset.length, varSelect.length - 3);
   // console.log('to \'' + trimmedInput +'\'');
   const map = trimmedInput.split('} ').map(x => x.split(' {'));
-  console.log('split', map)
+  // console.log('split', map)
   let result = startingOffset.substring(0, startingOffset.length - 1);
   map.forEach(pair => {
     result = `${result} ${pair[1]} {${pair[0]}}`
   });
   result += ' }';
-  console.log('result', result);
+  // console.log('result', result);
   return result;
 }
 
@@ -33,6 +33,6 @@ languages.forEach((language) => {
     decodeEntities: false
   });
   let varSelects = getVarSelects($);
-  varSelects.map(function(index, element) { $(this).text(swapTargetSource($(this).text())); console.log('')});
+  varSelects.map(function(index, element) { $(this).text(swapTargetSource($(this).text()));});
   fs.writeFileSync(`${inputDir}/messages.${language}.xlf`, $.xml())
 })
