@@ -29,7 +29,7 @@ const main = async () => {
     sourceTargetMap = { ...sourceTargetMap, [language]: getSourceTargets($) };
   })
 
-  const prompt = await inquirer.prompt([{ type: 'confirm', name: 'extracted', message: 'Please extract the translations now and confirm. Complete?' }]);
+  const prompt = await inquirer.prompt([{ type: 'confirm', name: 'extracted', message: 'Please extract the translations now and confirm.' }]);
   if(!prompt.extracted) {
     process.exit(0);
   }
@@ -46,6 +46,7 @@ const main = async () => {
       const newTarget = target.text().trim();
       console.log('changing', target.text(), 'to', sourceTargetMap[language][newTarget]);
       target.text(sourceTargetMap[language][newTarget])
+      target.attr('state', 'translated');
     })
     console.log('new count:', newTranslations.length);
     fs.writeFileSync(`${inputDir}/messages.${language}.xlf`, $.xml())
