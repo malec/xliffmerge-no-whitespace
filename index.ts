@@ -2,15 +2,18 @@ import * as fs from 'fs';
 import * as cheerio from 'cheerio';
 import * as inquirer from 'inquirer';
 
-const languages = ['de', 'fr', 'it', 'ja', 'ko', 'pt'];
+const languages = ['de', 'es', 'fr', 'it', 'ja', 'ko', 'pt'];
 const inputDir = '../privacy-portal-user/src/i18n';
 
+type SourceTargetMap = { [source: string]: { value: string, state: string } };
+
 const getSourceTargets = ($: cheerio.CheerioAPI) => {
-  const sourceTargetMap: { [source: string]: string } = {};
+  const sourceTargetMap: SourceTargetMap = {};
   $('trans-unit').each(function () {
     const source = $(this).children('source').text().trim();
     if (!sourceTargetMap[source]) {
-      sourceTargetMap[source] = $(this).children('target').text().trim();
+      const target = $(this).children('target');
+      sourceTargetMap[source] = { value: target.text().trim(), state: target.attr('state') || '' };
     } else {
       console.log('potential optimization:', source, 'has duplicated values');
     }
@@ -18,7 +21,7 @@ const getSourceTargets = ($: cheerio.CheerioAPI) => {
   return sourceTargetMap;
 }
 const main = async () => {
-  let sourceTargetMap: { [language: string]: { [source: string]: string} } = {};
+  let languageSourceTargetMap: { [language: string]: SourceTargetMap } = {};
 
   languages.forEach((language) => {
     const sourceFile = fs.readFileSync(`${inputDir}/messages.${language}.xlf`);
@@ -26,11 +29,11 @@ const main = async () => {
       xmlMode: true,
       decodeEntities: false
     });
-    sourceTargetMap = { ...sourceTargetMap, [language]: getSourceTargets($) };
+    languageSourceTargetMap = { ...languageSourceTargetMap, [language]: getSourceTargets($) };
   })
 
   const prompt = await inquirer.prompt([{ type: 'confirm', name: 'extracted', message: 'Please extract the translations now and confirm.' }]);
-  if(!prompt.extracted) {
+  if (!prompt.extracted) {
     process.exit(0);
   }
 
@@ -41,12 +44,15 @@ const main = async () => {
       decodeEntities: false
     });
     const newTranslations = $('target[state="new"]');
-    newTranslations.each(function() {
+    newTranslations.each(function () {
       const target = $(this)
       const newTarget = target.text().trim();
-      console.log('changing', target.text(), 'to', sourceTargetMap[language][newTarget]);
-      target.text(sourceTargetMap[language][newTarget])
-      target.attr('state', 'translated');
+      const origTarget = languageSourceTargetMap[language][newTarget];
+      if (origTarget.state !== 'new') {
+        console.log('changing', target.text(), 'to', languageSourceTargetMap[language][newTarget].value);
+        target.text(origTarget.value)
+        target.attr('state', 'modified');
+      }
     })
     console.log('new count:', newTranslations.length);
     fs.writeFileSync(`${inputDir}/messages.${language}.xlf`, $.xml())
