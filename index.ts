@@ -51,7 +51,7 @@ const main = async () => {
       if (origTarget.state !== 'new') {
         console.log('changing', target.text(), 'to', languageSourceTargetMap[language][newTarget].value);
         target.text(origTarget.value)
-        target.attr('state', 'modified');
+        target.attr('state', 'translated');
       }
     })
     console.log('new count:', newTranslations.length);
