@@ -1,9 +1,16 @@
 import * as fs from 'fs';
 import * as cheerio from 'cheerio';
 import * as inquirer from 'inquirer';
+import { Command } from 'commander';
+
+const program = new Command('xliffmerge-no-whitespace');
+program.version('1.0');
+program.argument('<directory>', 'directory to migrate');
+
+const options = program.parse();
 
 const languages = ['de', 'es', 'fr', 'it', 'ja', 'ko', 'pt'];
-const inputDir = '../privacy-portal-user/src/i18n';
+const inputDir = `${options.args[0]}/src/i18n`;
 
 type SourceTargetMap = { [source: string]: { value: string, state: string } };
 
