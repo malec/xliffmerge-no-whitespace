@@ -10,7 +10,7 @@ type SourceTargetMap = { [source: string]: { value: string, state: string } };
 const getSourceTargets = ($: cheerio.CheerioAPI) => {
   const sourceTargetMap: SourceTargetMap = {};
   $('trans-unit').each(function () {
-    const source = $(this).children('source').text().trim();
+    const source = $(this).children('source').text().replace(/\s\s+/g, ' ').trim();
     if (!sourceTargetMap[source]) {
       const target = $(this).children('target');
       sourceTargetMap[source] = { value: target.text().trim(), state: target.attr('state') || '' };
@@ -46,7 +46,7 @@ const main = async () => {
     const newTranslations = $('target[state="new"]');
     newTranslations.each(function () {
       const target = $(this)
-      const newTarget = target.text().trim();
+      const newTarget = target.text().replace(/\s\s+/g, ' ').trim();
       const origTarget = languageSourceTargetMap[language][newTarget];
       if (origTarget.state !== 'new') {
         console.log('changing', target.text(), 'to', languageSourceTargetMap[language][newTarget].value);
