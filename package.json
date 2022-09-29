@@ -1,5 +1,5 @@
 {
-  "name": "translation-var-select-fix",
+  "name": "xliffmerge-no-whitespace",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
