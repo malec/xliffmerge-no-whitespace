@@ -9,7 +9,7 @@ program.argument('<directory>', 'directory to migrate');
 
 const options = program.parse();
 
-const languages = ['es'];
+const languages = ['de', 'es', 'fr', 'it', 'ja', 'ko', 'pt'];
 const inputDir = `${options.args[0]}/src/i18n`;
 
 type SourceTargetMap = { [source: string]: { value: string, state: string } };
