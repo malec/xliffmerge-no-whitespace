@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import * as cheerio from 'cheerio';
+import cheerio from 'cheerio';
 import * as inquirer from 'inquirer';
 import { Command } from 'commander';
 
@@ -9,18 +9,22 @@ program.argument('<directory>', 'directory to migrate');
 
 const options = program.parse();
 
-const languages = ['de', 'es', 'fr', 'it', 'ja', 'ko', 'pt'];
+const languages = ['es'];
 const inputDir = `${options.args[0]}/src/i18n`;
 
 type SourceTargetMap = { [source: string]: { value: string, state: string } };
-
-const getSourceTargets = ($: cheerio.CheerioAPI) => {
+const cleanWhiteSpace = (input: string) => {
+  return input.replace(/\s{2,}/g, ' ').trim();
+}
+const getSourceTargets = ($: cheerio.Root) => {
   const sourceTargetMap: SourceTargetMap = {};
   $('trans-unit').each(function () {
-    const source = $(this).children('source').text().replace(/\s\s+/g, ' ').trim();
-    if (!sourceTargetMap[source]) {
+    const source = $(this).children('source');
+    const sourceXml = cleanWhiteSpace(source.html());
+    if (!sourceTargetMap[sourceXml]) {
       const target = $(this).children('target');
-      sourceTargetMap[source] = { value: target.text().trim(), state: target.attr('state') || '' };
+      const xml = cleanWhiteSpace(target.html());
+      sourceTargetMap[sourceXml] = { value: xml, state: target.attr('state') || '' };
     } else {
       console.log('potential optimization:', source, 'has duplicated values');
     }
@@ -53,11 +57,13 @@ const main = async () => {
     const newTranslations = $('target[state="new"]');
     newTranslations.each(function () {
       const target = $(this)
-      const newTarget = target.text().replace(/\s\s+/g, ' ').trim();
+      const newTarget = cleanWhiteSpace(target.html());
       const origTarget = languageSourceTargetMap[language][newTarget];
-      if (origTarget.state !== 'new') {
+      if(!origTarget) {
+        console.log('no previous translation for message', newTarget)
+      } else if (origTarget.state !== 'new') {
         console.log('changing', target.text(), 'to', languageSourceTargetMap[language][newTarget].value);
-        target.text(origTarget.value)
+        target.html(origTarget.value)
         target.attr('state', 'translated');
       }
     })
