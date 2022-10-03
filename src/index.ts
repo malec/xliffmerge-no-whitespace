@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import cheerio from 'cheerio';
+import * as cheerio from 'cheerio';
 import * as inquirer from 'inquirer';
 import { Command } from 'commander';
 
